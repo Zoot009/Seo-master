@@ -90,13 +90,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the report with pending status
+    // Create the report with completed status
     const report = await prisma.report.create({
       data: {
         userId: payload.userId,
         website: website,
         options: options,
-        status: "processing",
+        status: "completed",
       },
     });
 

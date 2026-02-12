@@ -540,12 +540,9 @@ export default function WhiteLabelReportsPage() {
                             <Button
                               size="sm"
                               onClick={() => handleViewReport(report.id)}
-                              disabled={report.status !== "completed"}
-                              className="bg-blue-500 hover:bg-blue-600 text-white h-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="bg-blue-500 hover:bg-blue-600 text-white h-8"
                             >
-                              {report.status === "processing"
-                                ? "Processing..."
-                                : "PDF"}
+                              PDF
                             </Button>
                             <div className="relative">
                               <Button
