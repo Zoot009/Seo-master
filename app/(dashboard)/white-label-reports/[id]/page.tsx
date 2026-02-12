@@ -108,6 +108,8 @@ export default function ReportViewPage() {
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<ReportData | null>(null);
   const [reportMetadata, setReportMetadata] = useState<{ createdAt: string } | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState("Loading report...");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -120,6 +122,7 @@ export default function ReportViewPage() {
 
   const fetchReport = async () => {
     try {
+      setLoadingMessage("Fetching report data...");
       const token = localStorage.getItem("seomaster_auth_token");
       const response = await fetch(`/api/reports/${params.id}`, {
         headers: {
@@ -130,25 +133,30 @@ export default function ReportViewPage() {
       if (response.ok) {
         const data = await response.json();
         if (data.report.status === "completed" && data.report.reportData) {
+          setLoadingMessage("Loading report details...");
           setReport(data.report.reportData);
           setReportMetadata({ createdAt: data.report.createdAt });
         } else if (data.report.status === "processing") {
+          setLoadingMessage("Report is being generated. This may take a few moments...");
           toast.info("Report is still being generated. Please wait...");
           setTimeout(fetchReport, 5000); // Retry after 5 seconds
           return;
         } else if (data.report.status === "failed") {
+          setError("Report generation failed");
           toast.error("Report generation failed.");
-          router.push("/white-label-reports");
+          setTimeout(() => router.push("/white-label-reports"), 2000);
           return;
         }
       } else {
+        setError("Failed to load report");
         toast.error("Failed to load report");
-        router.push("/white-label-reports");
+        setTimeout(() => router.push("/white-label-reports"), 2000);
       }
     } catch (error) {
       console.error("Error fetching report:", error);
+      setError("An error occurred while loading the report");
       toast.error("Failed to load report");
-      router.push("/white-label-reports");
+      setTimeout(() => router.push("/white-label-reports"), 2000);
     } finally {
       setLoading(false);
     }
@@ -167,17 +175,102 @@ export default function ReportViewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading report...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center max-w-md mx-auto px-6">
+          {/* Animated Logo/Icon */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-24 h-24 bg-blue-100 rounded-full animate-ping opacity-20"></div>
+            </div>
+            <div className="relative flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <svg 
+                  className="w-10 h-10 text-white animate-pulse" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          {/* Loading Spinner */}
+          <div className="mb-6">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500"></div>
+          </div>
+          
+          {/* Loading Text */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            {error ? "Error" : "Loading Report"}
+          </h2>
+          <p className="text-gray-600 mb-6 text-lg">
+            {error || loadingMessage}
+          </p>
+          
+          {/* Progress Dots */}
+          {!error && (
+            <div className="flex justify-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          )}
+          
+          {/* Back Button for Error State */}
+          {error && (
+            <div className="mt-6">
+              <Button 
+                onClick={() => router.push("/white-label-reports")}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Reports
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
   if (!report) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg 
+              className="w-10 h-10 text-gray-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">No Report Data</h2>
+          <p className="text-gray-600 mb-6">The report data could not be loaded.</p>
+          <Button 
+            onClick={() => router.push("/white-label-reports")}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Reports
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   // Provide defaults for missing data
