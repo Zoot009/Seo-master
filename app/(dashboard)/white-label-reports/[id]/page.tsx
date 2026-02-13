@@ -733,18 +733,23 @@ export default function ReportViewPage() {
                 <span className={`text-3xl font-bold ${safeReport.metaTags.hasTitle && safeReport.metaTags.titleLength >= 50 && safeReport.metaTags.titleLength <= 60 ? "text-green-500" : "text-red-500"}`}>{safeReport.metaTags.hasTitle && safeReport.metaTags.titleLength >= 50 && safeReport.metaTags.titleLength <= 60 ? "✓" : "✗"}</span>
               </div>
               <p className="text-gray-600 mb-3">
-                {safeReport.metaTags.hasTitle && safeReport.metaTags.titleLength >= 50 && safeReport.metaTags.titleLength <= 60
+                {!safeReport.metaTags.hasTitle
+                  ? "Your page does not have a Title Tag."
+                  : safeReport.metaTags.titleLength >= 50 && safeReport.metaTags.titleLength <= 60
                   ? "You have a Title Tag of optimal length (between 50 and 60 characters)."
-                  : safeReport.metaTags.hasTitle
-                  ? `Your Title Tag length (${safeReport.metaTags.titleLength} characters) is not optimal. Recommended length is between 50 and 60 characters.`
-                  : "Your page is missing a Title Tag."}
+                  : safeReport.metaTags.titleLength < 50
+                  ? "You have a Title Tag, but ideally it should be lengthened to between 50 and 60 characters (including spaces)."
+                  : "You have a Title Tag, but ideally it should be shortened to between 50 and 60 characters (including spaces)."}
               </p>
               {safeReport.title && (
-                <div className="bg-gray-50 p-4 rounded">
-                  <p className="text-gray-800 font-medium">{safeReport.title}</p>
-                  <p className="text-gray-500 text-sm mt-1">Length : {safeReport.metaTags.titleLength}</p>
+                <div className="bg-gray-50 p-4 rounded mb-3">
+                  <p className="text-gray-800">{safeReport.title}</p>
+                  <p className="text-gray-500 text-sm mt-2">Length : {safeReport.metaTags.titleLength}</p>
                 </div>
               )}
+              <p className="text-gray-600 text-sm">
+                Title Tags are very important for search engines to correctly understand and categorize your content.
+              </p>
             </div>
 
             {/* Meta Description */}
@@ -754,18 +759,23 @@ export default function ReportViewPage() {
                 <span className={`text-3xl font-bold ${safeReport.metaTags.hasDescription && safeReport.metaTags.descriptionLength >= 120 && safeReport.metaTags.descriptionLength <= 160 ? "text-green-500" : "text-red-500"}`}>{safeReport.metaTags.hasDescription && safeReport.metaTags.descriptionLength >= 120 && safeReport.metaTags.descriptionLength <= 160 ? "✓" : "✗"}</span>
               </div>
               <p className="text-gray-600 mb-3">
-                {safeReport.metaTags.hasDescription && safeReport.metaTags.descriptionLength >= 120 && safeReport.metaTags.descriptionLength <= 160
-                  ? "Your page has a Meta Description of optimal length (between 120 and 160 characters)."
-                  : safeReport.metaTags.hasDescription
-                  ? `Your Meta Description length (${safeReport.metaTags.descriptionLength} characters) is not optimal. Recommended length is between 120 and 160 characters.`
-                  : "Your page is missing a Meta Description."}
+                {!safeReport.metaTags.hasDescription
+                  ? "Your page does not have a Meta Description Tag."
+                  : safeReport.metaTags.descriptionLength >= 120 && safeReport.metaTags.descriptionLength <= 160
+                  ? "You have a Meta Description Tag of optimal length (between 120 and 160 characters)."
+                  : safeReport.metaTags.descriptionLength < 120
+                  ? "Your page has a Meta Description Tag however, your Meta Description should ideally be lengthened to between 120 and 160 characters (including spaces)."
+                  : "Your page has a Meta Description Tag however, your Meta Description should ideally be shortened to between 120 and 160 characters (including spaces)."}
               </p>
               {safeReport.description && (
-                <div className="bg-gray-50 p-4 rounded">
+                <div className="bg-gray-50 p-4 rounded mb-3">
                   <p className="text-gray-800">{safeReport.description}</p>
-                  <p className="text-gray-500 text-sm mt-1">Length : {safeReport.metaTags.descriptionLength}</p>
+                  <p className="text-gray-500 text-sm mt-2">Length : {safeReport.metaTags.descriptionLength}</p>
                 </div>
               )}
+              <p className="text-gray-600 text-sm">
+                A Meta Description is important for search engines to understand the content of your page, and is often shown as the description text blurb in search results.
+              </p>
             </div>
 
             {/* H1 Header */}
@@ -796,8 +806,11 @@ export default function ReportViewPage() {
               </div>
               <p className="text-gray-600 mb-4">
                 {safeReport.headings.h2Count > 0 
-                  ? "Your page is making use multiple levels of Header Tags." 
-                  : "Your page should use multiple levels of Header Tags."}
+                  ? "Your page is making use of multiple levels of Header Tags (which is good)." 
+                  : "Your page should use multiple levels of Header Tags, such as H2 and H3."}
+              </p>
+              <p className="text-gray-500 text-sm mb-4">
+                When HTML Heading Tags are used properly, they help search engines better understand the structure and context of your web page.
               </p>
               <div className="space-y-2">
                 <div className="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-600 mb-3">
@@ -831,10 +844,18 @@ export default function ReportViewPage() {
                 <h4 className="font-semibold text-gray-900 text-lg">Image Alt Attributes</h4>
                 <span className={`text-3xl font-bold ${safeReport.images.withoutAlt === 0 ? "text-green-500" : "text-red-500"}`}>{safeReport.images.withoutAlt === 0 ? "✓" : "✗"}</span>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-2">
                 {safeReport.images.withoutAlt === 0
                   ? "You do not have any images missing Alt Attributes on your page."
-                  : `You have ${safeReport.images.withoutAlt} image${safeReport.images.withoutAlt > 1 ? "s" : ""} missing Alt Attributes on your page.`}
+                  : "You have images on your page that are missing Alt Attributes."}
+              </p>
+              {safeReport.images.total > 0 && (
+                <p className="text-gray-600 mb-3">
+                  We found {safeReport.images.total} image{safeReport.images.total > 1 ? "s" : ""} on your page{safeReport.images.withoutAlt > 0 ? ` and ${safeReport.images.withoutAlt} of them ${safeReport.images.withoutAlt === 1 ? "is" : "are"} missing the attribute` : " and all have Alt Attributes"}.
+                </p>
+              )}
+              <p className="text-gray-600 text-sm">
+                Alt Attributes are an often overlooked and simple way to signal to Search Engines what an image is about, and help it rank in image search results.
               </p>
             </div>
 
@@ -916,38 +937,13 @@ export default function ReportViewPage() {
             <div className="border-b border-gray-200 pb-6">
               <div className="flex items-start justify-between mb-2">
                 <h4 className="font-semibold text-gray-900 text-lg">Schema.org Structured Data</h4>
-                <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasSchema ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasSchema ? "✓" : "✗"}</span>
+                <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasJsonLd ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasJsonLd ? "✓" : "✗"}</span>
               </div>
-              <p className="text-gray-600 mb-2">
+              <p className="text-gray-600">
                 {safeReport.technicalSEO.hasJsonLd 
                   ? "You are using JSON-LD Schema on your page." 
-                  : safeReport.technicalSEO.hasSchema
-                  ? "Your page is using Schema.org structured data." 
-                  : "Your page is not using Schema.org structured data."}
+                  : "Your page is not using JSON-LD Schema."}
               </p>
-              {safeReport.technicalSEO.hasSchema && safeReport.technicalSEO.schemaTypes.length > 0 && (
-                <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-gray-700 font-medium mb-1">Schema Types Found:</p>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {safeReport.technicalSEO.schemaTypes.map((type, idx) => (
-                      <li key={idx}>{type}</li>
-                    ))}
-                  </ul>
-                  {(safeReport.technicalSEO.hasMicrodata || safeReport.technicalSEO.hasRDFa) && (
-                    <p className="text-gray-500 text-sm mt-2">
-                      Additional formats: {[
-                        safeReport.technicalSEO.hasMicrodata && "Microdata",
-                        safeReport.technicalSEO.hasRDFa && "RDFa"
-                      ].filter(Boolean).join(", ")}
-                    </p>
-                  )}
-                </div>
-              )}
-              {!safeReport.technicalSEO.hasSchema && (
-                <p className="text-gray-600 text-sm mt-2">
-                  Schema.org structured data helps search engines understand your content better and can lead to rich search results.
-                </p>
-              )}
             </div>
 
             {/* Identity Schema */}
@@ -959,41 +955,16 @@ export default function ReportViewPage() {
               <p className="text-gray-600 mb-2">
                 {safeReport.technicalSEO.hasIdentitySchema 
                   ? "Organization or Person Schema identified on the page." 
-                  : "No Organization or Person Schema found on the page."}
+                  : "No Organization or Person Schema identified on the page."}
               </p>
               {safeReport.technicalSEO.identityType && (
-                <div className="bg-gray-50 p-3 rounded">
+                <div className="bg-gray-50 p-3 rounded mb-3">
                   <p className="text-gray-700"><span className="font-medium">{safeReport.technicalSEO.identityType}</span></p>
                 </div>
               )}
-              {!safeReport.technicalSEO.hasIdentitySchema && (
-                <p className="text-gray-600 text-sm mt-2">
-                  Adding Organization or Person schema helps search engines understand your brand identity and can improve your knowledge panel results.
-                </p>
-              )}
-            </div>
-
-            {/* Rendered Content */}
-            <div className="pb-6">
-              <div className="flex items-start justify-between mb-2">
-                <h4 className="font-semibold text-gray-900 text-lg">Rendered Content (LLM Readability)</h4>
-                <span className={`text-3xl font-bold ${(safeReport.technicalSEO.renderingPercentage || 0) < 30 ? "text-green-500" : "text-orange-500"}`}>
-                  {(safeReport.technicalSEO.renderingPercentage || 0) < 30 ? "✓" : "⚠"}
-                </span>
-              </div>
-              <p className="text-gray-600 mb-2">
-                {(safeReport.technicalSEO.renderingPercentage || 0) < 30 
-                  ? "Your page has a low level of rendered content which tends to make it more readable for LLMs."
-                  : "Your page has a high percentage of markup relative to content. Consider optimizing your HTML structure."}
+              <p className="text-gray-600 text-sm">
+                The absence of Organization or Person Schema can make it harder for Search Engines and LLMs to identify the ownership of a website and confidently answer brand, company or person queries.
               </p>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="text-gray-700">
-                  <span className="font-medium">Rendering Percentage:</span> {safeReport.technicalSEO.renderingPercentage || 0}%
-                </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  This metric compares visible text content to total HTML size. Lower percentages indicate cleaner markup.
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -1053,9 +1024,14 @@ export default function ReportViewPage() {
                 <h4 className="font-semibold text-gray-900 mb-1">Facebook Page Linked</h4>
                 <p className="text-gray-600 text-sm">
                   {safeReport.social.hasFacebookPage 
-                    ? "Facebook Page found as a link on your page." 
-                    : "No associated Facebook Page found as a link on your page."}
+                    ? "We found a linked Facebook Page on your website." 
+                    : "We did not detect a Facebook Page linked to your website."}
                 </p>
+                {!safeReport.social.hasFacebookPage && (
+                  <p className="text-gray-500 text-sm mt-2">
+                    Facebook is one of the top social media platforms and linking your business page helps strengthen your online presence.
+                  </p>
+                )}
                 {safeReport.social.facebookUrl && (
                   <a href={safeReport.social.facebookUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm mt-1 inline-block">
                     {safeReport.social.facebookUrl}
@@ -1073,9 +1049,14 @@ export default function ReportViewPage() {
                 <h4 className="font-semibold text-gray-900 mb-1">Instagram Linked</h4>
                 <p className="text-gray-600 text-sm">
                   {safeReport.social.hasInstagram 
-                    ? "Instagram Profile found linked on your page." 
-                    : "No associated Instagram Profile found linked on your page."}
+                    ? "We found a linked Instagram account on your website." 
+                    : "We did not detect an Instagram account linked to your website."}
                 </p>
+                {!safeReport.social.hasInstagram && (
+                  <p className="text-gray-500 text-sm mt-2">
+                    Instagram is a highly visual platform that can help showcase your brand and engage with customers.
+                  </p>
+                )}
                 {safeReport.social.instagramUrl && (
                   <a href={safeReport.social.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm mt-1 inline-block">
                     {safeReport.social.instagramUrl}
@@ -1100,15 +1081,18 @@ export default function ReportViewPage() {
             {/* Address & Phone Shown on Website */}
             <div className="flex items-start justify-between py-4 border-b border-gray-200">
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">Address &amp; Phone Shown on Website</h4>
-                <p className="text-gray-600 text-sm mb-3">
+                <h4 className="font-semibold text-gray-900 mb-1">Address & Phone Shown on Website</h4>
+                <p className="text-gray-600 text-sm mb-2">
                   {(safeReport.localSEO.hasPhone && safeReport.localSEO.hasAddress)
-                    ? "Address and Phone Number visible on the page."
+                    ? "We detected both an address and phone number on your website."
                     : safeReport.localSEO.hasPhone && !safeReport.localSEO.hasAddress
-                    ? "Phone Number found, but no address detected on the page."
+                    ? "We detected a phone number, but no address was found on your website."
                     : !safeReport.localSEO.hasPhone && safeReport.localSEO.hasAddress
-                    ? "Address found, but no phone number detected on the page."
-                    : "No address or phone number detected on the page."}
+                    ? "We detected an address, but no phone number was found on your website."
+                    : "We did not detect an address or phone number on your website."}
+                </p>
+                <p className="text-gray-500 text-sm mb-3">
+                  Displaying your business address and phone number prominently helps build trust with visitors and is important for local SEO.
                 </p>
                 {(safeReport.localSEO.hasPhone || safeReport.localSEO.hasAddress) ? (
                   <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
