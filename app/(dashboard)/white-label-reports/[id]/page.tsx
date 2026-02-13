@@ -1104,26 +1104,47 @@ export default function ReportViewPage() {
                 <p className="text-gray-600 text-sm mb-3">
                   {(safeReport.localSEO.hasPhone && safeReport.localSEO.hasAddress)
                     ? "Address and Phone Number visible on the page."
-                    : safeReport.localSEO.hasPhone
-                    ? "Phone Number visible on the page, but Address not found."
-                    : safeReport.localSEO.hasAddress
-                    ? "Address visible on the page, but Phone Number not found."
-                    : "Address and Phone Number not visible on the page."}
+                    : safeReport.localSEO.hasPhone && !safeReport.localSEO.hasAddress
+                    ? "Phone Number found, but no address detected on the page."
+                    : !safeReport.localSEO.hasPhone && safeReport.localSEO.hasAddress
+                    ? "Address found, but no phone number detected on the page."
+                    : "No address or phone number detected on the page."}
                 </p>
-                {(safeReport.localSEO.hasPhone || safeReport.localSEO.hasAddress) && (
-                  <div className="space-y-2 text-sm">
-                    {safeReport.localSEO.hasPhone && safeReport.localSEO.phoneNumber && (
+                {(safeReport.localSEO.hasPhone || safeReport.localSEO.hasAddress) ? (
+                  <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
+                    {safeReport.localSEO.hasPhone && safeReport.localSEO.phoneNumber ? (
                       <div className="flex gap-2">
-                        <span className="text-gray-500 font-medium">Phone</span>
+                        <span className="text-gray-500 font-medium min-w-[60px]">Phone</span>
                         <span className="text-gray-700">{safeReport.localSEO.phoneNumber}</span>
                       </div>
-                    )}
-                    {safeReport.localSEO.hasAddress && safeReport.localSEO.addressText && (
+                    ) : (
                       <div className="flex gap-2">
-                        <span className="text-gray-500 font-medium">Address</span>
-                        <span className="text-gray-700">{safeReport.localSEO.addressText}</span>
+                        <span className="text-gray-500 font-medium min-w-[60px]">Phone</span>
+                        <span className="text-red-600">Not found</span>
                       </div>
                     )}
+                    {safeReport.localSEO.hasAddress && safeReport.localSEO.addressText ? (
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 font-medium min-w-[60px]">Address</span>
+                        <span className="text-gray-700">{safeReport.localSEO.addressText}</span>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 font-medium min-w-[60px]">Address</span>
+                        <span className="text-red-600">Not found</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 font-medium min-w-[60px]">Phone</span>
+                      <span className="text-red-600">Not found</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-gray-500 font-medium min-w-[60px]">Address</span>
+                      <span className="text-red-600">Not found</span>
+                    </div>
                   </div>
                 )}
               </div>
