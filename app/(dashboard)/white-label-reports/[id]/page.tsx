@@ -69,9 +69,11 @@ interface ReportData {
     isResponsive: boolean;
     hasAnalytics: boolean;
     hasSchema: boolean;
+    hasJsonLd?: boolean;
     schemaTypes: string[];
     hasIdentitySchema: boolean;
     identityType?: string;
+    hasLocalBusinessSchema?: boolean;
     renderingPercentage?: number;
     hasMicrodata?: boolean;
     hasRDFa?: boolean;
@@ -904,7 +906,9 @@ export default function ReportViewPage() {
                 <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasSchema ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasSchema ? "✓" : "✗"}</span>
               </div>
               <p className="text-gray-600 mb-2">
-                {safeReport.technicalSEO.hasSchema 
+                {safeReport.technicalSEO.hasJsonLd 
+                  ? "You are using JSON-LD Schema on your page." 
+                  : safeReport.technicalSEO.hasSchema
                   ? "Your page is using Schema.org structured data." 
                   : "Your page is not using Schema.org structured data."}
               </p>
@@ -946,12 +950,30 @@ export default function ReportViewPage() {
               </p>
               {safeReport.technicalSEO.identityType && (
                 <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-gray-700">Schema Type: <span className="font-medium">{safeReport.technicalSEO.identityType}</span></p>
+                  <p className="text-gray-700"><span className="font-medium">{safeReport.technicalSEO.identityType}</span></p>
                 </div>
               )}
               {!safeReport.technicalSEO.hasIdentitySchema && (
                 <p className="text-gray-600 text-sm mt-2">
                   Adding Organization or Person schema helps search engines understand your brand identity and can improve your knowledge panel results.
+                </p>
+              )}
+            </div>
+
+            {/* Local Business Schema */}
+            <div className="border-b border-gray-200 pb-6">
+              <div className="flex items-start justify-between mb-2">
+                <h4 className="font-semibold text-gray-900 text-lg">Local Business Schema</h4>
+                <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasLocalBusinessSchema ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasLocalBusinessSchema ? "✓" : "✗"}</span>
+              </div>
+              <p className="text-gray-600 mb-2">
+                {safeReport.technicalSEO.hasLocalBusinessSchema 
+                  ? "LocalBusiness Schema identified on the page." 
+                  : "No LocalBusiness Schema found on the page."}
+              </p>
+              {!safeReport.technicalSEO.hasLocalBusinessSchema && (
+                <p className="text-gray-600 text-sm mt-2">
+                  Adding LocalBusiness schema helps search engines display your business information in local search results, including address, hours, and contact details.
                 </p>
               )}
             </div>

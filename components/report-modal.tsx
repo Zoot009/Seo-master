@@ -65,9 +65,14 @@ interface ReportData {
     isResponsive: boolean;
     hasAnalytics: boolean;
     hasSchema: boolean;
+    hasJsonLd?: boolean;
     schemaTypes: string[];
     hasIdentitySchema: boolean;
     identityType?: string;
+    hasLocalBusinessSchema?: boolean;
+    renderingPercentage?: number;
+    hasMicrodata?: boolean;
+    hasRDFa?: boolean;
   };
   onPageSEO: {
     score: number;
@@ -859,11 +864,31 @@ export default function ReportModal({
                   <h4 className="font-semibold text-gray-900 text-lg">Schema.org Structured Data</h4>
                   <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasSchema ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasSchema ? "✓" : "✗"}</span>
                 </div>
-                <p className="text-gray-600">
-                  {safeReport.technicalSEO.hasSchema 
+                <p className="text-gray-600 mb-2">
+                  {safeReport.technicalSEO.hasJsonLd 
                     ? "You are using JSON-LD Schema on your page." 
+                    : safeReport.technicalSEO.hasSchema
+                    ? "Your page is using Schema.org structured data." 
                     : "Your page is not using Schema.org structured data."}
                 </p>
+                {safeReport.technicalSEO.hasSchema && safeReport.technicalSEO.schemaTypes && safeReport.technicalSEO.schemaTypes.length > 0 && (
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-gray-700 font-medium mb-1">Schema Types Found:</p>
+                    <ul className="list-disc list-inside text-gray-600">
+                      {safeReport.technicalSEO.schemaTypes.map((type, idx) => (
+                        <li key={idx}>{type}</li>
+                      ))}
+                    </ul>
+                    {(safeReport.technicalSEO.hasMicrodata || safeReport.technicalSEO.hasRDFa) && (
+                      <p className="text-gray-500 text-sm mt-2">
+                        Additional formats: {[
+                          safeReport.technicalSEO.hasMicrodata && "Microdata",
+                          safeReport.technicalSEO.hasRDFa && "RDFa"
+                        ].filter(Boolean).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Identity Schema */}
@@ -879,9 +904,22 @@ export default function ReportModal({
                 </p>
                 {safeReport.technicalSEO.identityType && (
                   <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-gray-700">{safeReport.technicalSEO.identityType}</p>
+                    <p className="text-gray-700"><span className="font-medium">{safeReport.technicalSEO.identityType}</span></p>
                   </div>
                 )}
+              </div>
+
+              {/* Local Business Schema */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-semibold text-gray-900 text-lg">Local Business Schema</h4>
+                  <span className={`text-3xl font-bold ${safeReport.technicalSEO.hasLocalBusinessSchema ? "text-green-500" : "text-red-500"}`}>{safeReport.technicalSEO.hasLocalBusinessSchema ? "✓" : "✗"}</span>
+                </div>
+                <p className="text-gray-600">
+                  {safeReport.technicalSEO.hasLocalBusinessSchema 
+                    ? "LocalBusiness Schema identified on the page." 
+                    : "No LocalBusiness Schema found on the page."}
+                </p>
               </div>
 
               {/* Rendered Content */}
