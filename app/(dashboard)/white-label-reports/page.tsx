@@ -342,16 +342,13 @@ export default function WhiteLabelReportsPage() {
           </div>
 
           {/* Other Tools */}
-          <button
-            onClick={() => setActiveMenu("Other Tools")}
-            className={`w-full px-6 py-3 text-left font-medium transition-colors ${
-              activeMenu === "Other Tools"
-                ? "bg-[#2d3748] text-white"
-                : "text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]"
-            }`}
-          >
-            Other Tools
-          </button>
+          <Link href="/other-tools">
+            <button
+              className="w-full px-6 py-3 text-left font-medium transition-colors text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]"
+            >
+              Other Tools
+            </button>
+          </Link>
 
           {/* Account */}
           <div>
