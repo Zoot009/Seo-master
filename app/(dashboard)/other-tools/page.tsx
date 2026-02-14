@@ -14,6 +14,12 @@ export default function OtherToolsPage() {
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState("Other Tools");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [showAltTagChecker, setShowAltTagChecker] = useState(false);
+  const [altTagUrl, setAltTagUrl] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => 
@@ -25,6 +31,45 @@ export default function OtherToolsPage() {
     localStorage.removeItem("seomaster_auth_token");
     localStorage.removeItem("seomaster_user");
     router.push("/login");
+  };
+
+  const handleCheckAltTags = async () => {
+    if (!altTagUrl.trim()) {
+      setError("Please enter a valid URL");
+      return;
+    }
+
+    setChecking(true);
+    setError("");
+    setResults(null);
+    setShowDetails(false);
+
+    try {
+      // Get backend URL from environment or use default
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+      const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'your-secret-api-key';
+
+      const response = await fetch(`${backendUrl}/api/check-alt-tags`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ url: altTagUrl })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to check alt tags');
+      }
+
+      setResults(data);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while checking alt tags');
+    } finally {
+      setChecking(false);
+    }
   };
 
   useEffect(() => {
@@ -230,86 +275,203 @@ export default function OtherToolsPage() {
           </div>
         </div>
 
-        {/* SEO Tools Section */}
-        <div className="px-8 py-12 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                SEOptimer's Free SEO Tools
-              </h1>
-              <p className="text-gray-500 text-lg">
-                SEOptimer provides a range of tools to help you improve your website. Try one of our free tools today.
-              </p>
-            </div>
-
-            {/* Checkers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Checkers</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Image Alt Tag Checker */}
-                <div className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 cursor-pointer">
-                  <div className="w-16 h-16 bg-green-50 rounded-lg flex items-center justify-center mb-6">
-                    <svg 
-                      className="h-8 w-8 text-green-500" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Image Alt Tag Checker</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Check if your website images have proper alt attributes. Alt tags are important for accessibility and SEO.
-                  </p>
-                </div>
+        {/* SEO Tools Section or Individual Tool */}
+        {!showAltTagChecker ? (
+          <div className="px-8 py-12 bg-gray-50">
+            <div className="max-w-6xl mx-auto">
+              {/* Header */}
+              <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  SEOptimer's Free SEO Tools
+                </h1>
+                <p className="text-gray-500 text-lg">
+                  SEOptimer provides a range of tools to help you improve your website. Try one of our free tools today.
+                </p>
               </div>
-            </div>
 
-            {/* Generators Section */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Generators</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Meta Tag Generator */}
-                <div className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                  <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mb-6">
-                    <Eye className="h-8 w-8 text-blue-500" />
+              {/* Checkers Section */}
+              <div className="mb-16">
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">Checkers</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Image Alt Tag Checker */}
+                  <div 
+                    onClick={() => setShowAltTagChecker(true)}
+                    className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 cursor-pointer"
+                  >
+                    <div className="w-16 h-16 bg-green-50 rounded-lg flex items-center justify-center mb-6">
+                      <svg 
+                        className="h-8 w-8 text-green-500" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Image Alt Tag Checker</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      Check if your website images have proper alt attributes. Alt tags are important for accessibility and SEO.
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Meta Tag Generator</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    The meta tag generator will create description, keyword and other important meta tags for you with provided content.
-                  </p>
-                </div>
-
-                {/* .htaccess Generator */}
-                <div className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                  <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mb-6">
-                    <Wrench className="h-8 w-8 text-blue-500" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">.htaccess Generator</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    The Free .htaccess File Generator will take inputs to produce a .htaccess file you can upload to your website.
-                  </p>
-                </div>
-
-                {/* Robots.txt Generator */}
-                <div className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                  <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mb-6">
-                    <FileCode className="h-8 w-8 text-blue-500" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Robots.txt Generator</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    The Free robots.txt file generator allows you to easily product a robots.txt file for your website based on inputs.
-                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="pl-12 pr-8 py-12 bg-white min-h-screen">
+            <div className="max-w-5xl">
+              {/* Back to Tools Button */}
+              <button 
+                onClick={() => setShowAltTagChecker(false)}
+                className="flex items-center gap-2 text-blue-500 hover:text-blue-600 mb-8 font-medium"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+                Back to Tools
+              </button>
+
+              {/* Tool Header */}
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                  Image Alt Tag Checker
+                </h1>
+                <p className="text-gray-500 text-lg">
+                  SEOptimer's Image Alt Tag Checker scans your webpage to ensure all images have properly defined image alt tags.
+                </p>
+              </div>
+
+              {/* URL Input Section */}
+              <div className="mb-12">
+                <label className="block text-gray-700 font-medium mb-3">
+                  Website URL <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3">
+                  <Input
+                    type="url"
+                    placeholder="Example.com"
+                    value={altTagUrl}
+                    onChange={(e) => setAltTagUrl(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCheckAltTags()}
+                    disabled={checking}
+                    className="flex-1 h-12 border-gray-300 rounded-md"
+                  />
+                  <Button 
+                    onClick={handleCheckAltTags}
+                    disabled={checking}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 h-12 rounded-md disabled:opacity-50"
+                  >
+                    {checking ? "Checking..." : "Check"}
+                  </Button>
+                </div>
+                
+                {/* Error Message */}
+                {error && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
+                    {error}
+                  </div>
+                )}
+              </div>
+
+              {/* Results Section */}
+              {results && (
+                <div className="mb-12 p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        Result for {new URL(results.url).hostname}
+                      </h2>
+                      {results.statistics.imagesWithoutAlt > 0 ? (
+                        <p className="text-red-600 font-medium">
+                          You have images on your page that are missing Alt Attributes.
+                        </p>
+                      ) : (
+                        <p className="text-green-600 font-medium">
+                          Great! All images on your page have Alt Attributes.
+                        </p>
+                      )}
+                    </div>
+                    <div className={`w-12 h-12 flex items-center justify-center rounded-full ${
+                      results.statistics.imagesWithoutAlt > 0 ? 'bg-red-100' : 'bg-green-100'
+                    }`}>
+                      {results.statistics.imagesWithoutAlt > 0 ? (
+                        <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : (
+                        <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-4">
+                    We found <strong>{results.statistics.relevantImages}</strong> images on your page and{" "}
+                    <strong className={results.statistics.imagesWithoutAlt > 0 ? "text-red-600" : "text-green-600"}>
+                      {results.statistics.imagesWithoutAlt}
+                    </strong> of them are missing the attribute.
+                  </p>
+
+                  <p className="text-gray-600 mb-6">
+                    Alt Attributes are an often overlooked and simple way to signal to Search Engines what an image is about, 
+                    and help it rank in image search results.
+                  </p>
+
+                  {results.statistics.imagesWithoutAlt > 0 && (
+                    <Button
+                      onClick={() => setShowDetails(!showDetails)}
+                      variant="outline"
+                      className="border-gray-300 hover:bg-gray-100"
+                    >
+                      {showDetails ? "Hide Details" : "Show Details"}
+                    </Button>
+                  )}
+
+                  {/* Details Section */}
+                  {showDetails && results.statistics.imagesWithoutAlt > 0 && (
+                    <div className="mt-6 space-y-4">
+                      <h3 className="font-bold text-gray-900 text-lg">Images Missing Alt Attributes:</h3>
+                      <div className="space-y-3">
+                        {results.images.withoutAlt.map((image: any, index: number) => (
+                          <div key={index} className="p-4 bg-white rounded-md border border-gray-200">
+                            <p className="text-sm text-gray-600 break-all">
+                              <strong>Image {index + 1}:</strong> {image.src}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* What it is Section */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">What it is</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Alternate Image Text or Alt Text is descriptive text that is displayed in place of an image if it can't be loaded, 
+                  as well as a label on an image when it is moused over in the browser, to give more information to the visitor. 
+                  Additionally, Search Engines use provided Alt Text to better understand the content of an image. Image SEO is not 
+                  widely followed, but having your image rank for image searches is an overlooked way of gaining traffic and backlinks 
+                  to your site.
+                </p>
+              </div>
+
+              {/* How to fix it Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">How to fix it</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  We recommend adding useful and keyword rich Alt Text for pages's main images, in particular those that could have 
+                  ranking potential. This should be considered on a case-by-case basis. Often there may be imagery such as UI components 
+                  or tracking pixels where it may not be useful to add Alt Text, though we have tried to filter a number of these out in 
+                  our analysis.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
