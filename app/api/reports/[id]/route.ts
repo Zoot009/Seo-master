@@ -4,10 +4,11 @@ import prisma from "@/lib/prisma";
 
 // Function to trigger SEO analysis
 async function triggerAnalysis(reportId: string, website: string) {
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:4000";
+  const backendUrl = process.env.BACKEND_URL || "http://localhost:6478";
   const backendApiKey = process.env.BACKEND_API_KEY;
 
   console.log(`[REPORT ${reportId}] Starting SEO analysis for: ${website}`);
+  console.log(`[REPORT ${reportId}] Backend URL: ${backendUrl}`);
 
   fetch(`${backendUrl}/api/analyze`, {
     method: "POST",

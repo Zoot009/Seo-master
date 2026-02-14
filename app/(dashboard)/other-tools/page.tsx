@@ -45,9 +45,17 @@ export default function OtherToolsPage() {
     setShowDetails(false);
 
     try {
-      // Get backend URL from environment or use default
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'your-secret-api-key';
+      // Get backend URL from environment - must be configured in Vercel for production
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.');
+      }
+
+      if (!apiKey) {
+        throw new Error('API Key not configured. Please set NEXT_PUBLIC_API_KEY environment variable.');
+      }
 
       const response = await fetch(`${backendUrl}/api/check-alt-tags`, {
         method: 'POST',
@@ -67,6 +75,7 @@ export default function OtherToolsPage() {
       setResults(data);
     } catch (err: any) {
       setError(err.message || 'An error occurred while checking alt tags');
+      console.error('[Alt Tag Checker Error]:', err);
     } finally {
       setChecking(false);
     }
