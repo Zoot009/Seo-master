@@ -45,24 +45,12 @@ export default function OtherToolsPage() {
     setShowDetails(false);
 
     try {
-      // Get backend URL from environment - must be configured in Vercel for production
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-
-      if (!backendUrl) {
-        throw new Error('Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.');
-      }
-
-      if (!apiKey) {
-        throw new Error('API Key not configured. Please set NEXT_PUBLIC_API_KEY environment variable.');
-      }
-
-      // Use the SEO analyzer endpoint instead of separate alt-tag checker
-      const response = await fetch(`${backendUrl}/api/analyze`, {
+      // Call Next.js API route (server-side proxy) instead of backend directly
+      // This avoids mixed content errors (HTTPS → HTTP)
+      const response = await fetch('/api/analyze-images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKey
         },
         body: JSON.stringify({ url: altTagUrl })
       });
