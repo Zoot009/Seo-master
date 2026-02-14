@@ -57,7 +57,8 @@ export default function OtherToolsPage() {
         throw new Error('API Key not configured. Please set NEXT_PUBLIC_API_KEY environment variable.');
       }
 
-      const response = await fetch(`${backendUrl}/api/check-alt-tags`, {
+      // Use the SEO analyzer endpoint instead of separate alt-tag checker
+      const response = await fetch(`${backendUrl}/api/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,10 +70,28 @@ export default function OtherToolsPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to check alt tags');
+        throw new Error(data.error || 'Failed to analyze website');
       }
 
-      setResults(data);
+      // Transform SEO analyzer response to match expected format
+      const transformedData = {
+        success: true,
+        url: data.data.url,
+        statistics: {
+          totalImages: data.data.images.total,
+          relevantImages: data.data.images.total,
+          imagesWithAlt: data.data.images.withAlt,
+          imagesWithoutAlt: data.data.images.withoutAlt,
+          altCoverage: data.data.images.altPercentage
+        },
+        images: {
+          all: data.data.images.all || [],
+          withAlt: data.data.images.withAltList || [],
+          withoutAlt: data.data.images.withoutAltList || []
+        }
+      };
+
+      setResults(transformedData);
     } catch (err: any) {
       setError(err.message || 'An error occurred while checking alt tags');
       console.error('[Alt Tag Checker Error]:', err);
