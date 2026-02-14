@@ -122,6 +122,7 @@ export default function ReportViewPage() {
   const [loadingMessage, setLoadingMessage] = useState("Starting analysis...");
   const [error, setError] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
+  const [websiteName, setWebsiteName] = useState<string>("");
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -153,20 +154,25 @@ export default function ReportViewPage() {
       if (response.ok) {
         const data = await response.json();
         
+        // Store website name for display during loading
+        if (data.report.website && !websiteName) {
+          setWebsiteName(data.report.website);
+        }
+        
         if (data.report.status === "completed" && data.report.reportData) {
-          setLoadingMessage("Loading report details...");
+          setLoadingMessage("Report ready!");
           setReport(data.report.reportData);
           setReportMetadata({ createdAt: data.report.createdAt });
           setLoading(false);
         } else if (data.report.status === "processing") {
-          setLoadingMessage("Analyzing website... This may take 30-60 seconds.");
+          setLoadingMessage("Analyzing SEO metrics, performance & structure...");
           setPollCount((prev) => prev + 1);
-          // Poll every 3 seconds while processing
-          setTimeout(() => fetchReport(false), 3000);
+          // Poll every 1.5 seconds for faster updates
+          setTimeout(() => fetchReport(false), 1500);
         } else if (data.report.status === "pending") {
-          setLoadingMessage("Initializing analysis...");
+          setLoadingMessage("Starting analysis...");
           // If still pending, check again shortly
-          setTimeout(() => fetchReport(false), 2000);
+          setTimeout(() => fetchReport(false), 1500);
         } else if (data.report.status === "failed") {
           setError("Report generation failed");
           toast.error("Report generation failed.");
@@ -199,50 +205,41 @@ export default function ReportViewPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
-        <div className="text-center max-w-md mx-auto px-6">
+        <div className="text-center max-w-lg mx-auto px-6">
           {/* Loading Spinner */}
-          <div className="mb-6">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-500 border-r-blue-400"></div>
+          <div className="mb-8">
+            <div className="inline-block animate-spin rounded-full h-20 w-20 border-4 border-gray-200 border-t-blue-500"></div>
           </div>
+          
+          {/* Website Name */}
+          {websiteName && !error && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">Analyzing</p>
+              <h3 className="text-xl font-semibold text-gray-900">{websiteName}</h3>
+            </div>
+          )}
           
           {/* Loading Text */}
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {error ? "Error" : "Analyzing Website"}
+            {error ? "Error" : "SEO Analysis in Progress"}
           </h2>
-          <p className="text-gray-600 mb-4 text-lg">
+          <p className="text-gray-600 mb-6">
             {error || loadingMessage}
           </p>
           
-          {/* Progress indicator */}
+          {/* Simplified Progress indicator */}
           {!error && pollCount > 0 && (
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-2">
-                Checking progress... ({pollCount * 3}s elapsed)
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                 <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${Math.min((pollCount * 10), 90)}%` }}
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${Math.min((pollCount * 5), 95)}%` }}
                 ></div>
               </div>
+              <p className="text-xs text-gray-400">
+                {Math.floor(pollCount * 1.5)}s elapsed
+              </p>
             </div>
-          )}
-          
-          {/* Progress Dots */}
-          {!error && (
-            <div className="flex justify-center gap-2 mb-6">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          )}
-          
-          {/* Info text */}
-          {!error && (
-            <p className="text-sm text-gray-500">
-              We're analyzing the website's SEO metrics, structure, and performance. 
-              This typically takes 30-60 seconds.
-            </p>
           )}
           
           {/* Back Button for Error State */}
