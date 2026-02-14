@@ -255,10 +255,7 @@ export default function WhiteLabelReportsPage() {
             </button>
             {expandedMenus.includes("Auditing") && (
               <div className="bg-[#0a0a0a]">
-                <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
-                  <Search className="h-4 w-4" />
-                  SEO Analyzer
-                </button>
+                
                 <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
                   <FileText className="h-4 w-4" />
                   Report Templates
