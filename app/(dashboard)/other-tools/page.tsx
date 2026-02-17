@@ -666,10 +666,12 @@ export default function OtherToolsPage() {
                   <Settings className="h-4 w-4" />
                   Domain Settings
                 </button>
-                <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
-                  <User className="h-4 w-4" />
-                  My Account
-                </button>
+                <Link href="/my-account">
+                  <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
+                    <User className="h-4 w-4" />
+                    My Account
+                  </button>
+                </Link>
                 <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
                   <Users className="h-4 w-4" />
                   Account Users

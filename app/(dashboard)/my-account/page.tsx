@@ -8,12 +8,12 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ChevronRight, ChevronDown, FileText, FileCheck, Globe, ClipboardList, Search, TrendingUp, Link as LinkIcon, BarChart3, Settings, User, Users, LogOut, Circle, HelpCircle } from "lucide-react";
 
-export default function DashboardPage() {
+export default function MyAccountPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeMenu, setActiveMenu] = useState("Dashboard");
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [activeMenu, setActiveMenu] = useState("My Account");
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(["Account"]);
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => 
@@ -59,14 +59,11 @@ export default function DashboardPage() {
 
         {/* Menu Items */}
         <nav className="flex-1 py-4">
-          <button
-            onClick={() => setActiveMenu("Dashboard")}
-            className={`w-full px-6 py-3 text-left font-medium transition-colors ${
-              activeMenu === "Dashboard" ? "bg-[#2d3748] text-white" : "text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]"
-            }`}
-          >
-            Dashboard
-          </button>
+          <Link href="/dashboard">
+            <button className="w-full px-6 py-3 text-left font-medium transition-colors text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]">
+              Dashboard
+            </button>
+          </Link>
 
           {/* Auditing */}
           <div>
@@ -161,9 +158,7 @@ export default function DashboardPage() {
 
           {/* Other Tools */}
           <Link href="/other-tools">
-            <button
-              className="w-full px-6 py-3 text-left font-medium transition-colors text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]"
-            >
+            <button className="w-full px-6 py-3 text-left font-medium transition-colors text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]">
               Other Tools
             </button>
           </Link>
@@ -188,7 +183,7 @@ export default function DashboardPage() {
                   Domain Settings
                 </button>
                 <Link href="/my-account">
-                  <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
+                  <button className="w-full px-6 py-2 text-left text-sm bg-[#2d3748] text-white transition-colors flex items-center gap-3">
                     <User className="h-4 w-4" />
                     My Account
                   </button>
@@ -235,69 +230,43 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Welcome Section */}
+        {/* Account Details Section */}
         <div className="px-8 py-12 bg-gray-50">
-          <div className="max-w-5xl mx-auto text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">
-              Welcome to <span className="relative inline-block text-gray-900">
-                SEOptimer
-                <span className="absolute bottom-0 left-0 w-full h-1 bg-blue-600 rounded-full"></span>
-              </span>
-            </h1>
-            <p className="text-gray-500 text-base leading-relaxed mb-16 max-w-3xl mx-auto">
-              The dashboard contains links to the most important functions of your plan as well as handy SEOptimer and general{" "}
-              <span className="font-bold text-gray-900">SEO resources</span>. Reach out to us on{" "}
-              <span className="font-bold text-gray-900">Live Chat</span> if you need help and we'll respond within 24 hours. Get started by running an audit on your or your client's site.
-            </p>
-
-            {/* Audits Section */}
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-left">Audits</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Run an Audit */}
-              <div className="bg-white border border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow text-left">
-                <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2"/>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Run an Audit</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Run a quick one off report on any website or page. Use this to research your competitor's strengths, or review specific pages of your site.
-                </p>
-              </div>
-
-              {/* Run a White Label Report */}
-              <Link href="/white-label-reports">
-                <div className="bg-white border border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow text-left cursor-pointer">
-                  <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-6">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <path d="M14 2v6h6"/>
-                      <path d="M16 13H8"/>
-                      <path d="M16 17H8"/>
-                      <path d="M10 9H8"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Run a White Label Report</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Create Beautiful Branded White Label Reports available in Web or PDF Format. Reports are based on your configured Report Templates.
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">My Account</h1>
+            
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Account Details
+              </h2>
+              
+              <div className="space-y-5">
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                  <p className="text-base text-gray-900 font-medium">
+                    {user?.firstName} {user?.lastName}
                   </p>
                 </div>
-              </Link>
-
-              {/* Configure Report Templates */}
-              <div className="bg-white border border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow text-left">
-                <div className="w-16 h-16 bg-yellow-100 rounded-lg flex items-center justify-center mb-6">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
+                
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                  <p className="text-base text-gray-900 font-medium">{user?.email}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Configure Report Templates</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Configure the look and feel of your reports by uploading a company logo, adding custom text and choosing checks to include etc.
-                </p>
+                
+                {user?.companyName && (
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium text-gray-500 mb-1">Company Name</label>
+                    <p className="text-base text-gray-900 font-medium">{user.companyName}</p>
+                  </div>
+                )}
+                
+                <div className="flex flex-col pt-3 border-t border-gray-200">
+                  <label className="text-sm font-medium text-gray-500 mb-1">Account Status</label>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                    <p className="text-base text-gray-900 font-medium">Active</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
