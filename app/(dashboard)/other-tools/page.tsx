@@ -9,6 +9,120 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { ChevronRight, ChevronDown, FileText, FileCheck, Globe, ClipboardList, Search, TrendingUp, Link as LinkIcon, BarChart3, Settings, User, Users, LogOut, Circle, HelpCircle, Eye, Wrench, FileCode, Copy, Check } from "lucide-react";
 
+// Helper component to render schema properties in a detailed view
+const SchemaPropertyView = ({ data, level = 0 }: { data: any; level?: number }) => {
+  const [expanded, setExpanded] = useState<{[key: string]: boolean}>({});
+
+  const toggleExpand = (key: string) => {
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const renderValue = (key: string, value: any, currentLevel: number) => {
+    const indent = currentLevel * 20;
+
+    // Handle null or undefined
+    if (value === null || value === undefined) {
+      return (
+        <div key={key} style={{ marginLeft: `${indent}px` }} className="py-1">
+          <span className="text-blue-600 font-medium">{key}:</span>{" "}
+          <span className="text-gray-400 italic">null</span>
+        </div>
+      );
+    }
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+      const isExpanded = expanded[`${currentLevel}-${key}`];
+      return (
+        <div key={key} style={{ marginLeft: `${indent}px` }} className="py-1">
+          <button
+            onClick={() => toggleExpand(`${currentLevel}-${key}`)}
+            className="text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1"
+          >
+            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {key}: <span className="text-gray-500 font-normal">Array[{value.length}]</span>
+          </button>
+          {isExpanded && (
+            <div className="ml-4 border-l-2 border-gray-200 pl-2 mt-1">
+              {value.map((item, idx) => (
+                <div key={idx}>
+                  {typeof item === 'object' && item !== null ? (
+                    <div className="py-1">
+                      <span className="text-gray-500 font-medium">[{idx}]:</span>
+                      <div className="ml-2">
+                        <SchemaPropertyView data={item} level={currentLevel + 1} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-1">
+                      <span className="text-gray-500 font-medium">[{idx}]:</span>{" "}
+                      {renderSimpleValue(item)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Handle objects
+    if (typeof value === 'object') {
+      const isExpanded = expanded[`${currentLevel}-${key}`];
+      return (
+        <div key={key} style={{ marginLeft: `${indent}px` }} className="py-1">
+          <button
+            onClick={() => toggleExpand(`${currentLevel}-${key}`)}
+            className="text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1"
+          >
+            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {key}: <span className="text-gray-500 font-normal">{value['@type'] || 'Object'}</span>
+          </button>
+          {isExpanded && (
+            <div className="ml-4 border-l-2 border-gray-200 pl-2 mt-1">
+              <SchemaPropertyView data={value} level={currentLevel + 1} />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Handle simple values
+    return (
+      <div key={key} style={{ marginLeft: `${indent}px` }} className="py-1">
+        <span className="text-blue-600 font-medium">{key}:</span>{" "}
+        {renderSimpleValue(value)}
+      </div>
+    );
+  };
+
+  const renderSimpleValue = (value: any) => {
+    // Handle URLs
+    if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+      return (
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline break-all">
+          {value}
+        </a>
+      );
+    }
+
+    // Handle strings
+    if (typeof value === 'string') {
+      return <span className="text-gray-800">&quot;{value}&quot;</span>;
+    }
+
+    // Handle numbers and booleans
+    return <span className="text-orange-600">{String(value)}</span>;
+  };
+
+  return (
+    <div className="font-mono text-sm">
+      {Object.entries(data).map(([key, value]) => renderValue(key, value, level))}
+    </div>
+  );
+};
+
 export default function OtherToolsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -32,6 +146,13 @@ export default function OtherToolsPage() {
   const [openingHours, setOpeningHours] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [open24_7, setOpen24_7] = useState(false);
+
+  // Schema Validator States
+  const [showSchemaValidator, setShowSchemaValidator] = useState(false);
+  const [schemaValidatorUrl, setSchemaValidatorUrl] = useState("");
+  const [validating, setValidating] = useState(false);
+  const [schemaResults, setSchemaResults] = useState<any>(null);
+  const [validationError, setValidationError] = useState("");
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => 
@@ -354,6 +475,40 @@ export default function OtherToolsPage() {
     }
   };
 
+  const validateSchemaMarkup = async () => {
+    if (!schemaValidatorUrl.trim()) {
+      setValidationError("Please enter a valid URL");
+      return;
+    }
+
+    setValidating(true);
+    setValidationError("");
+    setSchemaResults(null);
+
+    try {
+      const response = await fetch('/api/validate-schema', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: schemaValidatorUrl })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to validate schema markup');
+      }
+
+      setSchemaResults(data.data);
+    } catch (err: any) {
+      setValidationError(err.message || 'An error occurred while validating schema');
+      console.error('[Schema Validator Error]:', err);
+    } finally {
+      setValidating(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/login");
@@ -558,7 +713,7 @@ export default function OtherToolsPage() {
         </div>
 
         {/* SEO Tools Section or Individual Tool */}
-        {!showAltTagChecker && !showSchemaGenerator ? (
+        {!showAltTagChecker && !showSchemaGenerator && !showSchemaValidator ? (
           <div className="px-8 py-12 bg-gray-50">
             <div className="max-w-6xl mx-auto">
               {/* Header */}
@@ -616,6 +771,20 @@ export default function OtherToolsPage() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Image Alt Tag Checker</h3>
                     <p className="text-gray-600 leading-relaxed">
                       Check if your website images have proper alt attributes. Alt tags are important for accessibility and SEO.
+                    </p>
+                  </div>
+
+                  {/* Schema Markup Validator */}
+                  <div 
+                    onClick={() => setShowSchemaValidator(true)}
+                    className="bg-white rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow border border-gray-100 cursor-pointer"
+                  >
+                    <div className="w-16 h-16 bg-purple-50 rounded-lg flex items-center justify-center mb-6">
+                      <FileCode className="h-8 w-8 text-purple-500" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Schema Markup Validator</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      Validate and extract structured data from any website. Check JSON-LD, Microdata, and RDFa schema markup.
                     </p>
                   </div>
                 </div>
@@ -1401,6 +1570,233 @@ export default function OtherToolsPage() {
                   ranking potential. This should be considered on a case-by-case basis. Often there may be imagery such as UI components 
                   or tracking pixels where it may not be useful to add Alt Text, though we have tried to filter a number of these out in 
                   our analysis.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : showSchemaValidator ? (
+          <div className="pl-12 pr-8 py-12 bg-white min-h-screen">
+            <div className="max-w-5xl">
+              {/* Back to Tools Button */}
+              <button 
+                onClick={() => setShowSchemaValidator(false)}
+                className="flex items-center gap-2 text-blue-500 hover:text-blue-600 mb-8 font-medium"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+                Back to Tools
+              </button>
+
+              {/* Tool Header */}
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                  Schema Markup Validator
+                </h1>
+                <p className="text-gray-500 text-lg">
+                  Extract and validate structured data (Schema.org markup) from any website. Supports JSON-LD, Microdata, and RDFa formats.
+                </p>
+              </div>
+
+              {/* URL Input Section */}
+              <div className="mb-12">
+                <label className="block text-gray-700 font-medium mb-3">
+                  Website URL <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3">
+                  <Input
+                    type="url"
+                    placeholder="https://example.com"
+                    value={schemaValidatorUrl}
+                    onChange={(e) => setSchemaValidatorUrl(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && validateSchemaMarkup()}
+                    disabled={validating}
+                    className="flex-1 h-12 border-gray-300 rounded-md"
+                  />
+                  <Button 
+                    onClick={validateSchemaMarkup}
+                    disabled={validating}
+                    className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-8 h-12 rounded-md disabled:opacity-50"
+                  >
+                    {validating ? "Validating..." : "Validate"}
+                  </Button>
+                </div>
+                
+                {/* Error Message */}
+                {validationError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
+                    {validationError}
+                  </div>
+                )}
+              </div>
+
+              {/* Results Section */}
+              {schemaResults && (
+                <div className="space-y-6">
+                  {/* Summary Card */}
+                  <div className="p-6 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                          Schema Analysis for {new URL(schemaResults.url).hostname}
+                        </h2>
+                        {schemaResults.summary.hasSchema ? (
+                          <p className="text-green-600 font-medium">
+                            Found {schemaResults.summary.totalSchemas} schema markup(s) on this page!
+                          </p>
+                        ) : (
+                          <p className="text-orange-600 font-medium">
+                            No schema markup found on this page.
+                          </p>
+                        )}
+                      </div>
+                      <div className={`w-12 h-12 flex items-center justify-center rounded-full ${
+                        schemaResults.summary.hasSchema ? 'bg-green-100' : 'bg-orange-100'
+                      }`}>
+                        {schemaResults.summary.hasSchema ? (
+                          <Check className="w-6 h-6 text-green-500" />
+                        ) : (
+                          <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+
+                    {schemaResults.summary.hasSchema && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-sm text-gray-600 mb-2">
+                          <strong>Schema Types Found:</strong> {schemaResults.summary.types.join(', ')}
+                        </p>
+                        <div className="grid grid-cols-3 gap-4 mt-4">
+                          <div className="bg-white p-4 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-500 mb-1">JSON-LD</p>
+                            <p className="text-2xl font-bold text-gray-900">{schemaResults.schemas.jsonLd.length}</p>
+                          </div>
+                          <div className="bg-white p-4 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-500 mb-1">Microdata</p>
+                            <p className="text-2xl font-bold text-gray-900">{schemaResults.schemas.microdata.length}</p>
+                          </div>
+                          <div className="bg-white p-4 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-500 mb-1">RDFa</p>
+                            <p className="text-2xl font-bold text-gray-900">{schemaResults.schemas.rdfa.length}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* JSON-LD Schemas */}
+                  {schemaResults.schemas.jsonLd.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-gray-900">JSON-LD Schemas ({schemaResults.schemas.jsonLd.length})</h3>
+                      {schemaResults.schemas.jsonLd.map((schema: any, index: number) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="bg-blue-600 px-6 py-4 border-b border-gray-200">
+                            <h4 className="font-semibold text-white text-lg">
+                              {Array.isArray(schema['@type']) ? schema['@type'].join(', ') : schema['@type']}
+                            </h4>
+                            {schema['@id'] && (
+                              <p className="text-blue-100 text-sm mt-1 break-all">{schema['@id']}</p>
+                            )}
+                          </div>
+                          <div className="p-6 bg-gray-50">
+                            <SchemaPropertyView data={schema} level={0} />
+                          </div>
+                          <div className="px-6 py-3 bg-white border-t border-gray-200">
+                            <details className="cursor-pointer">
+                              <summary className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                                View Raw JSON
+                              </summary>
+                              <pre className="mt-3 bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs">
+                                {JSON.stringify(schema, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Microdata Schemas */}
+                  {schemaResults.schemas.microdata.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-gray-900">Microdata Schemas ({schemaResults.schemas.microdata.length})</h3>
+                      {schemaResults.schemas.microdata.map((schema: any, index: number) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="bg-green-600 px-6 py-4 border-b border-gray-200">
+                            <h4 className="font-semibold text-white text-lg">{schema.type}</h4>
+                          </div>
+                          <div className="p-6 bg-gray-50">
+                            <SchemaPropertyView data={schema.properties} level={0} />
+                          </div>
+                          <div className="px-6 py-3 bg-white border-t border-gray-200">
+                            <details className="cursor-pointer">
+                              <summary className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                                View Raw JSON
+                              </summary>
+                              <pre className="mt-3 bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs">
+                                {JSON.stringify(schema.properties, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* RDFa Schemas */}
+                  {schemaResults.schemas.rdfa.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-bold text-gray-900">RDFa Schemas ({schemaResults.schemas.rdfa.length})</h3>
+                      {schemaResults.schemas.rdfa.map((schema: any, index: number) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="bg-orange-600 px-6 py-4 border-b border-gray-200">
+                            <h4 className="font-semibold text-white text-lg">{schema.type}</h4>
+                          </div>
+                          <div className="p-6 bg-gray-50">
+                            <SchemaPropertyView data={schema.properties} level={0} />
+                          </div>
+                          <div className="px-6 py-3 bg-white border-t border-gray-200">
+                            <details className="cursor-pointer">
+                              <summary className="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                                View Raw JSON
+                              </summary>
+                              <pre className="mt-3 bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs">
+                                {JSON.stringify(schema.properties, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* What it is Section */}
+              <div className="mb-8 mt-12">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">What is Schema Markup?</h2>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Schema markup (also known as structured data) is code that you add to your website to help search engines understand 
+                  your content better. It provides explicit information about the meaning of a page rather than leaving it to search 
+                  engines to figure out.
+                </p>
+                <p className="text-gray-600 leading-relaxed">
+                  This tool supports three formats:
+                </p>
+                <ul className="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                  <li><strong>JSON-LD</strong> (Recommended by Google) - JavaScript Object Notation for Linked Data</li>
+                  <li><strong>Microdata</strong> - HTML attributes embedded in page content</li>
+                  <li><strong>RDFa</strong> - Resource Description Framework in Attributes</li>
+                </ul>
+              </div>
+
+              {/* Why it matters Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Why it matters</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Schema markup helps search engines create rich snippets in search results, which can improve click-through rates. 
+                  It can enable features like review stars, product prices, event dates, and more to appear directly in search results. 
+                  This structured data also helps search engines better understand the context and relationships of content on your page.
                 </p>
               </div>
             </div>
