@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev => 
@@ -25,6 +26,16 @@ export default function DashboardPage() {
     localStorage.removeItem("seomaster_auth_token");
     localStorage.removeItem("seomaster_user");
     router.push("/login");
+  };
+
+  const handleShowAccountDetails = () => {
+    setShowAccountDetails(true);
+    setActiveMenu("My Account");
+  };
+
+  const handleShowDashboard = () => {
+    setShowAccountDetails(false);
+    setActiveMenu("Dashboard");
   };
 
   useEffect(() => {
@@ -60,7 +71,7 @@ export default function DashboardPage() {
         {/* Menu Items */}
         <nav className="flex-1 py-4">
           <button
-            onClick={() => setActiveMenu("Dashboard")}
+            onClick={handleShowDashboard}
             className={`w-full px-6 py-3 text-left font-medium transition-colors ${
               activeMenu === "Dashboard" ? "bg-[#2d3748] text-white" : "text-gray-300 hover:text-gray-100 hover:bg-[#1a1a1a]"
             }`}
@@ -187,7 +198,12 @@ export default function DashboardPage() {
                   <Settings className="h-4 w-4" />
                   Domain Settings
                 </button>
-                <button className="w-full px-6 py-2 text-left text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] transition-colors flex items-center gap-3">
+                <button 
+                  onClick={handleShowAccountDetails}
+                  className={`w-full px-6 py-2 text-left text-sm transition-colors flex items-center gap-3 ${
+                    activeMenu === "My Account" ? "bg-[#2d3748] text-white" : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                  }`}
+                >
                   <User className="h-4 w-4" />
                   My Account
                 </button>
@@ -234,6 +250,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Welcome Section */}
+        {!showAccountDetails ? (
         <div className="px-8 py-12 bg-gray-50">
           <div className="max-w-5xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-6">
@@ -300,6 +317,49 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        ) : (
+          /* Account Details Section */
+          <div className="px-8 py-12 bg-gray-50">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">My Account</h1>
+              
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                  Account Details
+                </h2>
+                
+                <div className="space-y-5">
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                    <p className="text-base text-gray-900 font-medium">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                    <p className="text-base text-gray-900 font-medium">{user?.email}</p>
+                  </div>
+                  
+                  {user?.companyName && (
+                    <div className="flex flex-col">
+                      <label className="text-sm font-medium text-gray-500 mb-1">Company Name</label>
+                      <p className="text-base text-gray-900 font-medium">{user.companyName}</p>
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col pt-3 border-t border-gray-200">
+                    <label className="text-sm font-medium text-gray-500 mb-1">Account Status</label>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                      <p className="text-base text-gray-900 font-medium">Active</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
